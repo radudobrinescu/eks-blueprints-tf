@@ -26,8 +26,9 @@ data "aws_eks_cluster_auth" "this" {
 data "aws_availability_zones" "available" {}
 
 locals {
-  name   = basename(path.cwd)
-  region = "us-west-2"
+  #name   = basename(path.cwd)
+  name = "eks-blueprints-tf"
+  region = "eu-north-1"
 
   vpc_cidr = "10.0.0.0/16"
   azs      = slice(data.aws_availability_zones.available.names, 0, 3)
@@ -54,12 +55,12 @@ module "eks_blueprints" {
   managed_node_groups = {
     mg_5 = {
       node_group_name = "managed-ondemand"
-      instance_types  = ["m5.large"]
+      instance_types  = ["m5.2xlarge"]
       subnet_ids      = module.vpc.private_subnets
 
-      desired_size = 5
-      max_size     = 10
-      min_size     = 3
+      desired_size = 2
+      max_size     = 6
+      min_size     = 1
     }
   }
 
@@ -111,18 +112,25 @@ module "eks_blueprints_kubernetes_addons" {
   # Add-ons
   enable_amazon_eks_aws_ebs_csi_driver = true
   enable_aws_for_fluentbit             = true
+  enable_fargate_fluentbit = true
   # Let fluentbit create the cw log group
   aws_for_fluentbit_create_cw_log_group = false
   enable_cert_manager                   = true
   enable_cluster_autoscaler             = true
   enable_karpenter                      = true
-  enable_keda                           = true
+  enable_keda                           = false
   enable_metrics_server                 = true
   enable_prometheus                     = true
   enable_traefik                        = true
   enable_vpa                            = true
-  enable_yunikorn                       = true
+  enable_yunikorn                       = false
   enable_argo_rollouts                  = true
+  enable_aws_load_balancer_controller   = true
+  enable_aws_node_termination_handler   = true
+  enable_kubecost                       = false
+  enable_ingress_nginx                  = true
+
+
 
   tags = local.tags
 }
