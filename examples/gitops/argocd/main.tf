@@ -104,7 +104,9 @@ module "eks_blueprints_kubernetes_addons" {
     }
     workloads = {
       path               = "envs/dev"
-      repo_url           = "https://github.com/aws-samples/eks-blueprints-workloads.git"
+      #repo_url           = "https://github.com/aws-samples/eks-blueprints-workloads.git"
+      repo_url           = "git@github.com:radudobrinescu/eks-workloads.git"
+      ssh_key_secret_name = "ssh-key-secret-name"
       add_on_application = false
     }
   }
