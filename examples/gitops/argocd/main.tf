@@ -19,6 +19,8 @@ provider "helm" {
   }
 }
 
+data "aws_caller_identity" "current" {}
+
 data "aws_eks_cluster_auth" "this" {
   name = module.eks_blueprints.eks_cluster_id
 }
@@ -29,6 +31,7 @@ locals {
   #name   = basename(path.cwd)
   name = "eks-blueprints-tf"
   region = "eu-north-1"
+  node_group_name = "managed-ondemand"
 
   vpc_cidr = "10.0.0.0/16"
   azs      = slice(data.aws_availability_zones.available.names, 0, 3)
@@ -47,20 +50,28 @@ module "eks_blueprints" {
   source = "../../.."
 
   cluster_name    = local.name
-  cluster_version = "1.24"
+  cluster_version = "1.25"
 
   vpc_id             = module.vpc.vpc_id
   private_subnet_ids = module.vpc.private_subnets
 
   managed_node_groups = {
     mg_5 = {
-      node_group_name = "managed-ondemand"
-      instance_types  = ["m5.2xlarge"]
+      node_group_name = local.node_group_name
+      instance_types  = ["m5.large"]
       subnet_ids      = module.vpc.private_subnets
 
       desired_size = 2
       max_size     = 6
       min_size     = 1
+    }
+  }
+
+  platform_teams = {
+    admin = {
+      users = [
+        data.aws_caller_identity.current.arn
+      ]
     }
   }
 
@@ -103,8 +114,9 @@ module "eks_blueprints_kubernetes_addons" {
       add_on_application = true
     }
     workloads = {
-      path               = "envs/dev"
+      #path               = "envs/dev"
       #repo_url           = "https://github.com/aws-samples/eks-blueprints-workloads.git"
+      path               = "radu"
       repo_url           = "git@github.com:radudobrinescu/eks-workloads.git"
       ssh_key_secret_name = "ssh-key-secret-name"
       add_on_application = false
@@ -132,10 +144,17 @@ module "eks_blueprints_kubernetes_addons" {
   enable_kubecost                       = false
   enable_ingress_nginx                  = true
 
+  #Karpenter Add-on configuration
+  karpenter_helm_config = {
+      #awsInterruptionQueueName = module.karpenter.queue_arn
+      awsDefaultInstanceProfile = "${local.name}-${local.node_group_name}"
+    }
+    karpenter_node_iam_instance_profile        = module.karpenter.instance_profile_name
+    #karpenter_enable_spot_termination_handling = true
+    #karpenter_sqs_queue_arn                    = module.karpenter.queue_arn  
 
-
-  tags = local.tags
-}
+    tags = local.tags
+  }
 
 #---------------------------------------------------------------
 # ArgoCD Admin Password credentials with Secrets Manager
@@ -200,6 +219,21 @@ module "vpc" {
     "kubernetes.io/cluster/${local.name}" = "shared"
     "kubernetes.io/role/internal-elb"     = 1
   }
+
+  tags = local.tags
+}
+
+################################################################################
+# Karpenter
+################################################################################
+
+# Creates Karpenter native node termination handler resources and IAM instance profile
+module "karpenter" {
+  source  = "terraform-aws-modules/eks/aws//modules/karpenter"
+  version = "~> 19.5"
+
+  cluster_name           = local.name
+  create_irsa            = false # IRSA will be created by the kubernetes-addons module
 
   tags = local.tags
 }

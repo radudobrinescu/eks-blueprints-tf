@@ -116,6 +116,13 @@ locals {
     }
   ] : []
 
+  # User for admin access
+  map_users = var.map_users == [{
+    userarn  : "arn:aws:iam::802019299867:user/cli-user"
+    username : "cli-user"
+    groups   : ["system:masters"]
+  }]
+
   # Teams
   partition  = local.context.aws_partition_id
   account_id = local.context.aws_caller_identity_account_id
