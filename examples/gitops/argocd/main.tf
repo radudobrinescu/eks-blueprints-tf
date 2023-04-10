@@ -63,6 +63,11 @@ module "eks_blueprints" {
   vpc_id             = module.vpc.vpc_id
   private_subnet_ids = module.vpc.private_subnets
 
+ # Add karpenter.sh/discovery tag so that we can use this as securityGroupSelector in karpenter provisioner
+  node_security_group_tags = {
+    "karpenter.sh/discovery/${local.name}" = local.name
+  }
+
   managed_node_groups = {
     mg_5 = {
       node_group_name = local.node_group_name
