@@ -94,11 +94,6 @@ module "eks_blueprints_kubernetes_addons" {
   eks_oidc_provider    = module.eks_blueprints.oidc_provider
   eks_cluster_version  = module.eks_blueprints.eks_cluster_version
 
-  enable_amazon_eks_aws_ebs_csi_driver = true
-  enable_karpenter                    = true
-  enable_aws_node_termination_handler = true
-  enable_kubecost                     = true
-
   enable_argocd = true
   # This example shows how to set default ArgoCD Admin Password using SecretsManager with Helm Chart set_sensitive values.
   argocd_helm_config = {
@@ -309,4 +304,26 @@ resource "kubectl_manifest" "karpenter_provisioner" {
   yaml_body = each.value
 
   depends_on = [module.eks_blueprints_kubernetes_addons]
+}
+
+#Supporting resources
+
+data "aws_ami" "eks" {
+  owners      = ["amazon"]
+  most_recent = true
+
+  filter {
+    name   = "name"
+    values = ["amazon-eks-node-${module.eks_blueprints.eks_cluster_version}-*"]
+  }
+}
+
+data "aws_ami" "bottlerocket" {
+  owners      = ["amazon"]
+  most_recent = true
+
+  filter {
+    name   = "name"
+    values = ["bottlerocket-aws-k8s-${module.eks_blueprints.eks_cluster_version}-x86_64-*"]
+  }
 }
