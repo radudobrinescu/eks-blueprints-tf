@@ -13,6 +13,7 @@ resource "kubernetes_namespace_v1" "irsa" {
   }
 }
 
+
 resource "kubernetes_secret_v1" "irsa" {
   count = var.create_kubernetes_service_account && var.create_service_account_secret_token ? 1 : 0
   metadata {

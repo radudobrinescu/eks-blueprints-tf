@@ -133,23 +133,23 @@ module "eks_blueprints_kubernetes_addons" {
 
   # Add-ons
   enable_amazon_eks_aws_ebs_csi_driver = true
-  enable_aws_for_fluentbit             = true
-  enable_fargate_fluentbit = true
+  enable_aws_for_fluentbit             = false
+  enable_fargate_fluentbit = false
   # Let fluentbit create the cw log group
   aws_for_fluentbit_create_cw_log_group = false
   enable_cert_manager                   = true
-  enable_cluster_autoscaler             = true
+  enable_cluster_autoscaler             = false
   enable_karpenter                      = true
   enable_keda                           = false
   enable_metrics_server                 = true
-  enable_prometheus                     = true
+  enable_prometheus                     = false
   enable_traefik                        = true
   enable_vpa                            = true
   enable_yunikorn                       = false
   enable_argo_rollouts                  = true
   enable_aws_load_balancer_controller   = true
-  enable_aws_node_termination_handler   = true
-  enable_kubecost                       = false
+  enable_aws_node_termination_handler   = false
+  enable_kubecost                       = true
   enable_ingress_nginx                  = true
 
   #Karpenter Add-on configuration
@@ -309,42 +309,6 @@ resource "kubectl_manifest" "karpenter_provisioner" {
 #---------------------------------------------------------------
 # Supporting Resources
 #---------------------------------------------------------------
-
-module "vpc" {
-  source  = "terraform-aws-modules/vpc/aws"
-  version = "~> 3.0"
-
-  name = local.name
-  cidr = local.vpc_cidr
-
-  azs             = local.azs
-  public_subnets  = [for k, v in local.azs : cidrsubnet(local.vpc_cidr, 8, k)]
-  private_subnets = [for k, v in local.azs : cidrsubnet(local.vpc_cidr, 8, k + 10)]
-
-  enable_nat_gateway   = true
-  single_nat_gateway   = true
-  enable_dns_hostnames = true
-
-  # Manage so we can name
-  manage_default_network_acl    = true
-  default_network_acl_tags      = { Name = "${local.name}-default" }
-  manage_default_route_table    = true
-  default_route_table_tags      = { Name = "${local.name}-default" }
-  manage_default_security_group = true
-  default_security_group_tags   = { Name = "${local.name}-default" }
-
-  public_subnet_tags = {
-    "kubernetes.io/cluster/${local.name}" = "shared"
-    "kubernetes.io/role/elb"              = 1
-  }
-
-  private_subnet_tags = {
-    "kubernetes.io/cluster/${local.name}" = "shared"
-    "kubernetes.io/role/internal-elb"     = 1
-  }
-
-  tags = local.tags
-}
 
 data "aws_ami" "eks" {
   owners      = ["amazon"]
