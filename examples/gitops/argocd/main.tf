@@ -58,11 +58,11 @@ module "eks_blueprints" {
   managed_node_groups = {
     mg_5 = {
       node_group_name = local.node_group_name
-      instance_types  = ["m5.large"]
+      instance_types  = ["t3.large"]
       subnet_ids      = module.vpc.private_subnets
 
       desired_size = 2
-      max_size     = 6
+      max_size     = 2
       min_size     = 1
     }
   }
