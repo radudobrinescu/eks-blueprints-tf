@@ -22,6 +22,10 @@ terraform {
       source  = "viktorradnai/bcrypt"
       version = ">= 0.1.2"
     }
+    kubectl = {
+      source  = "gavinbunney/kubectl"
+      version = ">= 1.14"
+    }
   }
 
   # ##  Used for end-to-end testing on project; update to suit your needs
