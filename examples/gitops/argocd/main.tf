@@ -109,7 +109,7 @@ module "eks_blueprints" {
 # List of map_users
   map_users = [
     {
-      userarn  = "arn:aws:iam::802019299867:user/cli-user"      # The ARN of the IAM user to add.
+      userarn  = "******"      # The ARN of the IAM user to add.
       username = "cli-user"                                            # The user name within Kubernetes to map to the IAM role
       groups   = ["system:masters"]                                   # A list of groups within Kubernetes to which the role is mapped; Checkout K8s Role and Rolebindings
     }
