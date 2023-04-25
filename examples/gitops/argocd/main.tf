@@ -79,13 +79,21 @@ module "eks_blueprints" {
       min_size     = 1
     },
     br_test = {
-      node_group_name = br-test-updates
+      node_group_name = "br-test-updates"
             instance_types  = ["t3.large"]
       subnet_ids      = module.vpc.private_subnets
       ami_type = "BOTTLEROCKET_x86_64"
+      create_launch_template = true
+      launch_template_os = "bottlerocket"
+      
       desired_size = 2
       max_size     = 2
       min_size     = 1
+
+      k8s_labels = {
+              "bottlerocket.aws/updater-interface-version" = "2.0.0"
+            }
+
     }
   }
 
@@ -96,6 +104,16 @@ module "eks_blueprints" {
       ]
     }
   }
+
+### Adding cli-user - this is temporary
+# List of map_users
+  map_users = [
+    {
+      userarn  = "arn:aws:iam::802019299867:user/cli-user"      # The ARN of the IAM user to add.
+      username = "cli-user"                                            # The user name within Kubernetes to map to the IAM role
+      groups   = ["system:masters"]                                   # A list of groups within Kubernetes to which the role is mapped; Checkout K8s Role and Rolebindings
+    }
+  ]
 
   tags = local.tags
 }
