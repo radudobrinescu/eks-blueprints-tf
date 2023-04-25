@@ -15,11 +15,28 @@ kubecostMetrics:
   emitPodAnnotations: true
   emitNamespaceAnnotations: true
 
+  # This Prometheus setup is reusing the existing Prometheus deployment
+  # Check for more docs under https://guide.kubecost.com/hc/en-us/articles/4407595941015
+global:
+  prometheus:
+    fqdn: http://prometheus-server.prometheus.svc
+    enabled: false
+
+# If you have node-exporter and/or KSM running on your cluster, follow this step to disable the Kubecost included versions.
 prometheus:
-  server:
-    image:
-      repository: public.ecr.aws/kubecost/prometheus
-      tag: v2.35.0
+  nodeExporter:
+    enabled: false
+  serviceAccounts:
+    nodeExporter:
+      create: false
+  kubeStateMetrics:
+    enabled: false
+
+#prometheus:
+#  server:
+#    image:
+#      repository: public.ecr.aws/kubecost/prometheus
+#      tag: v2.35.0
 
   configmapReload:
     prometheus:
@@ -29,3 +46,5 @@ prometheus:
 
 reporting:
   productAnalytics: false
+
+

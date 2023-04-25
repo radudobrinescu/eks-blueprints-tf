@@ -77,6 +77,15 @@ module "eks_blueprints" {
       desired_size = 3
       max_size     = 3
       min_size     = 1
+    },
+    br_test = {
+      node_group_name = br-test-updates
+            instance_types  = ["t3.large"]
+      subnet_ids      = module.vpc.private_subnets
+      ami_type = "BOTTLEROCKET_x86_64"
+      desired_size = 2
+      max_size     = 2
+      min_size     = 1
     }
   }
 
@@ -119,14 +128,30 @@ module "eks_blueprints_kubernetes_addons" {
     ]
   }
 
-      kubecost_helm_config = {
+/* Commented by Radu
+  kubecost_helm_config = {
     name       = "kubecost"                                             # (Required) Release name.
     repository = "oci://public.ecr.aws/kubecost"                        # (Optional) Repository URL where to locate the requested chart.
     chart      = "cost-analyzer"                                        # (Required) Chart name to be installed.
     version    = "1.102.1"                                               # (Optional) Specify the exact chart version to install. If this is not specified, it defaults to the version set within default_helm_config: https://github.com/aws-ia/terraform-aws-eks-blueprints/blob/main/modules/kubernetes-addons/kubecost/locals.tf
     namespace  = "kubecost"                                             # (Optional) The namespace to install the release into.
-    #values = [templatefile("${path.module}/kubecost-values.yaml", {})]
+    values = [templatefile("${path.module}/kubecost-values.yaml", {})]
   }
+end of Radu comment */
+
+  kubecost_helm_config = {
+    name                = "kubecost"                      # (Required) Release name.
+    repository          = "oci://public.ecr.aws/kubecost" # (Optional) Repository URL where to locate the requested chart.
+    chart               = "cost-analyzer"                 # (Required) Chart name to be installed.
+    version             = "1.102.1"                        # (Optional) Specify the exact chart version to install. If this is not specified, it defaults to the version set within default_helm_config: https://github.com/aws-ia/terraform-aws-eks-blueprints/blob/main/modules/kubernetes-addons/kubecost/locals.tf
+    namespace           = "kubecost"                      # (Optional) The namespace to install the release into.
+    #repository_username = data.aws_ecrpublic_authorization_token.token.user_name
+    #repository_password = data.aws_ecrpublic_authorization_token.token.password
+    #kubecostToken       = "cmRvYnJpbmVAYW1hem9uLmNvbQ==xm343yadf98"
+    timeout             = "300"
+    values              = [templatefile("${path.module}/kubecost-values.yaml", {})]
+  }
+
 
   argocd_manage_add_ons = true # Indicates that ArgoCD is responsible for managing/deploying add-ons
   argocd_applications = {
